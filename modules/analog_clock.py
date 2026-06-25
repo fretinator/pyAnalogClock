@@ -78,7 +78,7 @@ class AnalogClock:
     canvas: Drawing
     curMillis = 0
     lastMillis = 0
-    UPDATE_MILLIS = 5000  # seconds
+    UPDATE_MILLIS = 10000  # seconds
     firstRun = True
     prevDayOfMonth = -1
     CLOCK_PADDING = 10
@@ -103,6 +103,7 @@ class AnalogClock:
     lastDay = -1
 
     def __init__(self,
+                 
         app: App,
         canvas: Drawing,
         screen_back_color = "BLUE",
@@ -134,7 +135,7 @@ class AnalogClock:
         # Now setup Analog Clock Info
         self.calculate_clock_position()
         self.draw_clock(True, True)
-        self.clockCanvas.repeat(1000, self.draw_clock)
+        self.clockCanvas.repeat(self.UPDATE_MILLIS, self.draw_clock)
 
     def approximately_equal(self, f1: float, f2: float):
         return abs(f1 - f2) < self.APPROXIMATION_VALUE
@@ -203,13 +204,34 @@ class AnalogClock:
 
 
     # Expects hour from 0 to 11, with 0 being 12 AM/PM
-    def draw_time_hash(self, theHour: int):
-        my_pos = AnalogClockPos.get_pos(theHour)
+    def draw_time_hash(self, the_hour: int):
+        my_pos = AnalogClockPos.get_pos(the_hour)
 
-        if (theHour % 3) == 0:
+        if (the_hour % 3) == 0:
             self.clockCanvas.rectangle(my_pos.x1, my_pos.y1, my_pos.x2, my_pos.y2, self.clock_hash_color)
+            self.draw_time_text(the_hour)
         else:
             self.clockCanvas.line(my_pos.x1, my_pos.y1, my_pos.x2, my_pos.y2, self.clock_hash_color)
+
+    def draw_time_text(self, the_hour):
+        hour_pos: RectPos = AnalogClockPos.get_pos(the_hour)
+        font_size = int(self.clockCanvas.width / 20)
+        offset = int(self.clockCanvas.width / 40)
+        if 0 == the_hour:
+            self.clockCanvas.text(hour_pos.x1 - offset, hour_pos.y2 + int(0.75 * offset), str(the_hour + 12),
+                                  self.clock_hash_color, 'courier', font_size)
+
+        if 3 == the_hour:
+            self.clockCanvas.text(hour_pos.x1 - int(2.5 * offset), hour_pos.y1 - offset, str(the_hour),
+                                  self.clock_hash_color, 'courier', font_size)
+
+        if 6 == the_hour:
+            self.clockCanvas.text(hour_pos.x1 - int(0.75 * offset), hour_pos.y2 - int(3 * offset), str(the_hour),
+                                  self.clock_hash_color, 'courier', font_size)
+
+        if 9 == the_hour:
+            self.clockCanvas.text(hour_pos.x2 + offset, hour_pos.y1 - offset, str(the_hour),
+                                  self.clock_hash_color, 'courier', font_size)
 
 
     def draw_face(self):
@@ -269,6 +291,8 @@ class AnalogClock:
         if not firstTime:
             self.erase_last_minute()
 
+        print("Drawing minute  " + str(theMinute))
+
         # first determine end of the minute hand triangle
         # which is the farthest point away from center of clock.
         # Use (x3,y3)
@@ -301,12 +325,10 @@ class AnalogClock:
 
         now = datetime.now()
 
-        self.print_time('Drawing clock', now)
-
         if firstTime or forceDrawHands or (now.minute != self.lastMinute):
+            self.print_time('Drawing clock', now)
             self.draw_hands(now, firstTime)
-
-        self.draw_inner_circle()
+            self.draw_inner_circle()
 
         self.lastMinute = now.minute
         self.lastDay = now.day
