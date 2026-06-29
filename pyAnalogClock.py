@@ -102,7 +102,7 @@ lastDay = -1    # used to know when to redraw date
 
 clockPos: AnalogClockPos
 app = App(title="Clock", layout='grid')
-app.full_screen()
+app.full_screen = True
 clockCanvas = Drawing(App, width = app.width / 2, height = app.height)
 
 screenWidth = app.width
