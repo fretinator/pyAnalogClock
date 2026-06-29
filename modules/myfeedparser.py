@@ -6,30 +6,33 @@ import tempfile
 
 class MyFeedParser:
     feeds = {
-        'http://rss.cnn.com/rss/cnn_topstories.rss'
+        'https://interaksyon.philstar.com/feed'
     }
 
     def __init(self):
         self.output = ""
 
-    def getLatestFeedItems(self):
+    def getLatestFeedItems(self, max_items: int = 10):
         myItems = []
 
         for feed in MyFeedParser.feeds:
             d = feedparser.parse(feed);
-
+            cur_item: int = 0
             # Try to get date the current feed was built
 
-            # print("--------------------------------")
-            # print("Reading " + d.feed.title + "...")
-            # print d.feed.subtitle
-            # print("--------------------------------")
+            #print("--------------------------------")
+            #print("Reading " + d.feed.title_detail + "...")
+            #print(d.feed.subtitle)
+            #print("--------------------------------")
 
             for post in d.entries:
                 if not (hasattr(post, 'updated')) and hasattr(post, 'pubDate'):
                     post['updated'] = post['pubDate']
 
-                myItems.append(post)
+                if cur_item < max_items:
+                    myItems.append(post)
+                    
+                cur_item += 1
 
         myItems.sort(reverse=True, key=lambda item: item.updated if hasattr(item, 'updated') else "zzzzzzzz")
 
@@ -41,7 +44,7 @@ class MyFeedParser:
         myItems = self.getLatestFeedItems()
 
         for item in myItems:
-            print(item.title)
+            print(item.title_detail)
             print(item.link)
             if hasattr(item, 'updated'):
                 print(item.updated + "\n")
@@ -65,7 +68,7 @@ class MyFeedParser:
         for item in myItems:
             retval += "<ht>\n"
             retval += "<p>\n"
-            retval += "<li>" + item.title + "</li>\n"
+            retval += "<li>" + item.title_detail + "</li>\n"
             retval += "<li><a href=\"" + item.link + "\">LINK</a></li>\n"
 
             if hasattr(item, 'updated'):
@@ -89,13 +92,13 @@ if __name__ == "__main__":
 
     f = MyFeedParser()
 
-    s = f.getLatestFeedsAsHtml(True)
-    # print(s)
+    s = f.getLatestFeedsAsHtml(False)
+    print(s)
 
-    fh, path = tempfile.mkstemp(suffix='.html')
-    url = 'file://' + path
+    #fh, path = tempfile.mkstemp(suffix='.html')
+    #url = 'file://' + path
 
-    with open(path, 'w') as fp:
-        fp.write(s)
+    #with open(path, 'w') as fp:
+    #   fp.write(s)
 
-    webbrowser.open(url)
+    #webbrowser.open(url)
